@@ -1,7 +1,9 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from matplotlib.widgets import TextBox
 from quantum_algorithms import quantum_optimize
+import random
 
 # Define network
 G = nx.DiGraph()
@@ -14,8 +16,24 @@ print("Quantum optimized path:", best_path)
 
 # Visualization setup
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+plt.subplots_adjust(bottom=0.2)  # space for TextBox
 pos = nx.spring_layout(G)
-vehicle_positions = [0]
+
+# Vehicle storage
+vehicles = []
+
+def init_vehicles(n):
+    """Initialize vehicles with staggered start positions and unique colors"""
+    return [
+        {
+            "pos": -i * 0.2,  # stagger start so they don’t overlap
+            "color": plt.cm.tab10(i % 10)
+        }
+        for i in range(n)
+    ]
+
+# Start with 3 vehicles for demo
+vehicles = init_vehicles(3)
 
 def animate(i):
     ax1.clear()
@@ -29,20 +47,23 @@ def animate(i):
     edge_labels = nx.get_edge_attributes(G, 'weight')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, ax=ax1)
 
-    # Animate vehicle along the best path
+    # Animate all vehicles
     path_nodes = best_path
     total_edges = len(path_nodes) - 1
-    current_edge_index = int(vehicle_positions[0] * total_edges)
-    if current_edge_index >= total_edges:
-        vehicle_positions[0] = 0
-        current_edge_index = 0
-    start = pos[path_nodes[current_edge_index]]
-    end = pos[path_nodes[current_edge_index + 1]]
-    t = vehicle_positions[0] * total_edges - current_edge_index
-    x = start[0] + (end[0] - start[0]) * t
-    y = start[1] + (end[1] - start[1]) * t
-    ax1.plot(x, y, 'ro', markersize=12)
-    vehicle_positions[0] += 0.01  # vehicle speed
+
+    for v in vehicles:
+        if v["pos"] >= 1.0:  # loop back after reaching destination
+            v["pos"] = 0.0
+        current_edge_index = int(max(0, v["pos"]) * total_edges)
+        if current_edge_index >= total_edges:
+            current_edge_index = total_edges - 1
+        start = pos[path_nodes[current_edge_index]]
+        end = pos[path_nodes[current_edge_index + 1]]
+        t = max(0, v["pos"]) * total_edges - current_edge_index
+        x = start[0] + (end[0] - start[0]) * t
+        y = start[1] + (end[1] - start[1]) * t
+        ax1.plot(x, y, 'o', color=v["color"], markersize=12)
+        v["pos"] += 0.01  # vehicle speed
 
     # Draw quantum histogram on the side
     ax2.bar(quantum_counts.keys(), quantum_counts.values(), color='purple')
@@ -50,5 +71,22 @@ def animate(i):
     ax2.set_xlabel("Path index")
     ax2.set_ylabel("Counts")
 
-ani = animation.FuncAnimation(fig, animate, frames=100, interval=200)
+# TextBox for user input
+axbox = plt.axes([0.25, 0.05, 0.5, 0.05])  # x, y, width, height
+text_box = TextBox(axbox, 'Vehicles: ', initial="3")
+
+def submit(text):
+    global vehicles
+    try:
+        n = int(text)
+        if n > 0:
+            vehicles[:] = init_vehicles(n)
+            print(f"Updated to {n} vehicles")
+    except ValueError:
+        print("Invalid number entered")
+
+text_box.on_submit(submit)
+
+# Run animation
+ani = animation.FuncAnimation(fig, animate, frames=200, interval=100)
 plt.show()
