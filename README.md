@@ -20,13 +20,14 @@ Quantum Traffic Simulator demonstrates how quantum computing can optimize real-w
 
 - The histogram is displayed alongside the network and updates dynamically with the animation.
 
+- Supports multiple vehicles moving simultaneously.
+
+- Allows for selection between different nodes/edges for complex traffic simulations.
+
+
 ## Future Improvements
 
-- Support multiple vehicles moving simultaneously.
-
 - Use real quantum counts from Grover’s algorithm for more realistic path probabilities.
-
-- Expand the network size (more nodes/edges) for complex traffic simulations.
 
 - Add interactive visualization to dynamically update edge colors and widths based on quantum results.
 
