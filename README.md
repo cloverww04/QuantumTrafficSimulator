@@ -39,4 +39,6 @@ Quantum Traffic Simulator demonstrates how quantum computing can optimize real-w
 1. ```python main.py```
 
 
+## Example
 
+ <img src="https://github.com/user-attachments/assets/1a5d2929-8c09-48e7-b0c9-d4f55fd5a92d" width="1100px" height="500px" />

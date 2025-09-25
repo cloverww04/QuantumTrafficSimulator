@@ -10,7 +10,7 @@ G, pos = get_demo_graph()
 start_node, end_node = "A", "D"
 best_path, quantum_counts = quantum_optimize(G, start_node, end_node)
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 9))
 plt.subplots_adjust(left=0.05, right=0.95, bottom=0.25)  # space for widgets
 
 # --- Traffic-aware vehicles ---
