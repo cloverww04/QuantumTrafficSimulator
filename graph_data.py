@@ -50,17 +50,27 @@ def get_large_graph():
     return G, pos
 
 def get_city_graph():
+    """
+    Compact but dense city map with ring roads and shortcuts.
+    """
     G = nx.DiGraph()
     edges = [
+        # Main grid
         ("A","B",1),("B","C",1),("C","D",1),
         ("E","F",1),("F","G",1),("G","H",1),
         ("A","E",2),("B","F",2),("C","G",2),("D","H",2),
-        ("B","E",2),("C","F",2),("D","G",2)
+        # Ring roads
+        ("A","D",3), ("E","H",3),
+        ("A","H",4), ("D","E",4),
+        # Shortcuts
+        ("B","G",2), ("C","F",2)
     ]
     G.add_weighted_edges_from(edges)
+
     pos = {
         "A":(0,0),"B":(2,0),"C":(4,0),"D":(6,0),
         "E":(0,2),"F":(2,2),"G":(4,2),"H":(6,2)
     }
-    return G,pos
+    return G, pos
+
 

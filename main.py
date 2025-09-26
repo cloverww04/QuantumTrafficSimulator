@@ -54,23 +54,17 @@ def animate(frame):
     ax1.clear()
     ax2.clear()
 
-    # Draw network with quantum-selected path highlighted
-    edge_colors = ['red' if u in best_path and v in best_path else 'gray' for u, v in G.edges()]
-    edge_widths = [3 if u in best_path and v in best_path else 1 for u, v in G.edges()]
-    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=1500,
-            arrows=True, ax=ax1, edge_color=edge_colors, width=edge_widths)
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=nx.get_edge_attributes(G, 'weight'), ax=ax1)
-
     # Reset traffic counts
     for edge in G.edges():
         traffic[edge] = 0
 
-    # Animate each vehicle
+    # Update traffic based on current vehicle positions
     for v in vehicles:
         path_nodes = v["path"]
         total_edges = len(path_nodes) - 1
 
-        if v["pos"] >= 1.0:  # reached destination, pick a new path
+        # Loop back after reaching destination
+        if v["pos"] >= 1.0:
             v["pos"] = 0.0
             v["path"] = select_path()
             path_nodes = v["path"]
@@ -80,18 +74,35 @@ def animate(frame):
         if edge_idx >= total_edges:
             edge_idx = total_edges - 1
 
+        edge = (path_nodes[edge_idx], path_nodes[edge_idx + 1])
+        traffic[edge] = traffic.get(edge, 0) + 1
+
+        # Move vehicle along edge
         start = pos[path_nodes[edge_idx]]
         end = pos[path_nodes[edge_idx + 1]]
         t = max(0, v["pos"]) * total_edges - edge_idx
         x = start[0] + (end[0] - start[0]) * t
         y = start[1] + (end[1] - start[1]) * t
         ax1.plot(x, y, 'o', color=v["color"], markersize=12)
-
-        # Update traffic
-        edge = (path_nodes[edge_idx], path_nodes[edge_idx + 1])
-        traffic[edge] = traffic.get(edge, 0) + 1
-
         v["pos"] += 0.01  # vehicle speed
+
+    # Draw network with edge coloring
+    edge_colors = []
+    edge_widths = []
+    for u, v in G.edges():
+        if traffic.get((u, v), 0) > 0:
+            edge_colors.append("orange")  # currently traversed
+            edge_widths.append(3)
+        elif u in best_path and v in best_path:
+            edge_colors.append("red")  # quantum suggested path
+            edge_widths.append(2)
+        else:
+            edge_colors.append("gray")
+            edge_widths.append(1)
+
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=1500,
+            arrows=True, ax=ax1, edge_color=edge_colors, width=edge_widths)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=nx.get_edge_attributes(G, 'weight'), ax=ax1)
 
     # Quantum histogram
     ax2.bar(quantum_counts.keys(), quantum_counts.values(), color='purple')
